@@ -1,0 +1,150 @@
+
+<!DOCTYPE html>
+
+<html ng-app="TestApp">
+    <head>
+        <title>Sorting Algorithms visualized!</title>
+        <link href="layout.css" rel = "stylesheet" type = "text/css">
+        <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+</script>
+    </head>
+    <body>
+        <div class = "topBar">
+            <div class="center">
+                <button class = "button" id = "randomFillButton">Random Fill</button>
+                <button class = "button" id = "addColumnButton"> Add Column</button>
+                <button class = "button" id = "sortButton"> Sort</button>
+            </div>
+
+        </div>
+
+        <div id = "chartContainer" style="height: 60%; width: 100%;"></div>
+    </body>
+
+</html>
+
+
+
+
+
+
+
+<script type="text/javascript">
+    var SortedColor = "#311adb";
+    var UnsortedColor = "#ff0000";
+    var SelectedColor = "#b3b3cc";
+    var WaitTime = 300;
+
+    var index = 0;
+    
+    var chartData = []
+    var chart;
+
+    //re renders the chart
+    //Simple now but will be built upon to color
+    async  function updateChart(){
+        chart.options.data[0].dataPoints = chartData;
+        chart.render();
+    }
+
+    //allows user to add custom data
+    //Needs upgraded a lot
+    function addRow(){
+       let newData = parseInt(prompt("Enter a Value", "0"), 10)
+       chartData.push({label : chartData.length +1, y : newData, color: UnsortedColor});
+       updateChart();
+    }
+
+    //Fill list with random values, repeatable
+    function fillRandom(){
+        let arraySize = Math.floor(Math.random()*20 + 10);
+        for (let i = 1; i <= arraySize; i++) {
+            let newData = Math.floor(Math.random()*50 + 10);
+            chartData.push({label : i, y : newData, color: UnsortedColor});
+        }
+
+        updateChart();
+    }
+
+    function sort(){
+            //This should handle selecting the algorithim but
+            //for now it just sorts w/ selection
+            selectionSort();
+    }
+
+    function selectionSort(){
+        if(index < chartData.length){
+            let minIndex = index;
+            for(var searchIndex = index +1; searchIndex <chartData.length; searchIndex++){
+                if(chartData[searchIndex].y < chartData[minIndex].y){
+                    minIndex = searchIndex;
+                }
+            }
+
+            chartData[minIndex].color = SelectedColor;
+            chart.render();
+            sleep(WaitTime/2);
+
+            let tempValue = chartData[minIndex];
+            chartData[minIndex] = {label : chartData[index].label, y : chartData[index].y, color: UnsortedColor, x : minIndex};
+            chartData[index] =  {label : tempValue.label, y : tempValue.y, color: SortedColor, x : index};
+
+            sleep(WaitTime/2);
+            index++;
+        }else{
+            chart.render();
+            clearInterval(sorter);
+            index=0;
+        }
+    }
+
+
+    function sleep(milliseconds) {
+        const time = Date.now();
+        let currentTime = null;
+        do {
+         currentTime = Date.now();
+        } while  (currentTime - time < milliseconds);
+    }
+
+
+    window.onload = function () {
+        chart = new CanvasJS.Chart("chartContainer", {
+            animationEnabled: true,
+            theme: "light2",
+            title:{
+                text: "Data"              
+            },
+            axisX:{
+                gridThickness: 0,
+                tickLength: 0,
+                lineThickness: 10,
+                labelFormatter: function(){
+                    return " ";
+                }
+            },
+                axisY:{
+                    gridThickness: 0,
+                    tickLength: 0,
+                    lineThickness: 10,
+                    labelFormatter: function(){
+                        return " ";
+                    }
+            },
+            data: [              
+            {
+                type: "column",
+                dataPoints: chartData
+            }
+            ]
+        });
+        chart.render();
+    }
+
+    //Button declarations
+    document.getElementById('randomFillButton').onclick = function() { fillRandom() };
+    document.getElementById('addColumnButton').onclick = function() { addRow() };
+    //Don't like this but chart.render seems to need flushing or something so this is how it goes.
+    document.getElementById('sortButton').onclick = function() { sorter = setInterval(sort),2000};
+
+</script>
